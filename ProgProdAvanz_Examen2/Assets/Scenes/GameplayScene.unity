@@ -377,6 +377,57 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 0
+--- !u!1 &625124290
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 625124292}
+  - component: {fileID: 625124291}
+  m_Layer: 0
+  m_Name: TurnManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &625124291
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 625124290}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a605d33c25a3f8d4681e8d36ebe5550a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerMovesPerTurn: 3
+  enemyMovesPerTurn: 2
+  currentTurnState: 0
+  currentPlayerMoves: 0
+  currentEnemyIndex: 0
+  currentEnemyMoves: 0
+  currentTurnInfo: 
+--- !u!4 &625124292
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 625124290}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.1126661, y: -2.1270468, z: -0.3743503}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1321220437
 GameObject:
   m_ObjectHideFlags: 0
@@ -408,12 +459,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gridWidth: 10
   gridHeight: 10
-  cellSize: 1.3
+  cellSize: 1.4
   cellPrefab: {fileID: 1630069952135131224, guid: de4b2943cba288843b49e472c71ce302, type: 3}
   normalCellMaterial: {fileID: 2100000, guid: e3b8fbad098fb3243b604f8c5e3df88e, type: 2}
   playerCellMaterial: {fileID: 2100000, guid: d55fd6a0bdb71074e93e841faf0df29a, type: 2}
+  enemyCellMaterial: {fileID: 2100000, guid: 997cf3b3cbef30f47984f975606455f9, type: 2}
   cellYOffset: -1
   playerPrefab: {fileID: 976040293289813364, guid: 664f78efe8b0cbf448e0326bfa0de3b3, type: 3}
+  enemyPrefab: {fileID: 5989947693671054322, guid: 9fd4c7b58a901f4408b959a2f11cb38d, type: 3}
+  enemyCount: 3
+  minDistanceFromPlayer: 3
 --- !u!4 &1321220439
 Transform:
   m_ObjectHideFlags: 0
@@ -435,4 +490,5 @@ SceneRoots:
   m_Roots:
   - {fileID: 103435428}
   - {fileID: 355766275}
+  - {fileID: 625124292}
   - {fileID: 1321220439}

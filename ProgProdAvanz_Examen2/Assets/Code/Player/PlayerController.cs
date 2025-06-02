@@ -5,6 +5,9 @@ public class PlayerController : MonoBehaviour
     [Header("Configuración del Jugador")]
     public float moveSpeed = 2.0f;
 
+    [Header("Estado del Turno (Solo Lectura)")]
+    [SerializeField] private bool canMove = false;
+
     private GridManager gridManager;
     private Vector2Int currentGridPosition;
     private bool isMoving = false;
@@ -19,14 +22,13 @@ public class PlayerController : MonoBehaviour
     {
         currentGridPosition = new Vector2Int(gridX, gridZ);
         transform.position = gridManager.GetWorldPosition(gridX, gridZ);
-        gridManager.HighlightCell(gridX, gridZ, true);
 
-        Debug.Log($"Jugador spawneado en: ({gridX}, {gridZ})");
+        Debug.Log($"Jugador inicializado en: ({gridX}, {gridZ})");
     }
 
     void Update()
     {
-        if (!isMoving)
+        if (!isMoving && canMove)
         {
             HandleInput();
         }
@@ -36,7 +38,7 @@ public class PlayerController : MonoBehaviour
 
     void HandleInput()
     {
-        if (gridManager == null)
+        if (gridManager == null || !canMove)
         {
             return;
         }
@@ -70,28 +72,32 @@ public class PlayerController : MonoBehaviour
     {
         Vector2Int newGridPos = currentGridPosition + direction;
 
-        if (gridManager.IsValidGridPosition(newGridPos.x, newGridPos.y))
+        if (gridManager.IsValidGridPosition(newGridPos.x, newGridPos.y) &&
+            gridManager.IsCellFree(newGridPos.x, newGridPos.y))
         {
             SetGridPosition(newGridPos.x, newGridPos.y);
         }
         else
         {
-            Debug.Log("Movimiento inválido - fuera del tablero");
+            Debug.Log("Movimiento inválido (fuera del tablero o casilla ocupada)");
         }
     }
 
     void SetGridPosition(int gridX, int gridZ)
     {
-        gridManager.HighlightCell(currentGridPosition.x, currentGridPosition.y, false);
+        gridManager.SetCellOccupied(currentGridPosition.x, currentGridPosition.y, false);
 
         currentGridPosition = new Vector2Int(gridX, gridZ);
+
+        gridManager.SetCellOccupied(gridX, gridZ, true, GridManager.CellType.Player);
 
         targetWorldPosition = gridManager.GetWorldPosition(gridX, gridZ);
         isMoving = true;
 
-        gridManager.HighlightCell(gridX, gridZ, true);
-
-        Debug.Log($"Player se mueve a: ({gridX}, {gridZ})");
+        if (TurnManager.Instance != null)
+        {
+            TurnManager.Instance.OnPlayerMove();
+        }
     }
 
     void HandleMovement()
@@ -112,8 +118,18 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void SetCanMove(bool canMoveState)
+    {
+        canMove = canMoveState;
+    }
+
     public Vector2Int GetGridPosition()
     {
         return currentGridPosition;
+    }
+
+    public bool IsMoving()
+    {
+        return isMoving;
     }
 }
