@@ -24,6 +24,7 @@ public class TurnManager : MonoBehaviour
     private GridManager gridManager;
     private PlayerController playerController;
     private List<EnemyController> enemies = new List<EnemyController>();
+    private ActionMenuUI actionMenuUI;
 
     public static TurnManager Instance { get; private set; }
 
@@ -42,6 +43,7 @@ public class TurnManager : MonoBehaviour
     void Start()
     {
         gridManager = FindFirstObjectByType<GridManager>();
+        actionMenuUI = FindFirstObjectByType<ActionMenuUI>();
 
         Invoke(nameof(InitializeTurnSystem), 0.1f);
     }
@@ -55,6 +57,11 @@ public class TurnManager : MonoBehaviour
         enemies.AddRange(foundEnemies);
 
         Debug.Log($"TurnManager inicializado - Jugador: {(playerController != null ? "Encontrado" : "No encontrado")}, Enemigos: {enemies.Count}");
+
+        if (actionMenuUI != null && playerController != null)
+        {
+            actionMenuUI.SetPlayerController(playerController);
+        }
 
         StartPlayerTurn();
     }
@@ -91,16 +98,22 @@ public class TurnManager : MonoBehaviour
 
         if (playerController != null)
         {
-            playerController.SetCanMove(true);
+            playerController.SetCanMove(false);
         }
         else
         {
             playerController = FindFirstObjectByType<PlayerController>();
             if (playerController != null)
             {
-                playerController.SetCanMove(true);
+                playerController.SetCanMove(false);
             }
         }
+
+        if (actionMenuUI != null)
+        {
+            actionMenuUI.ShowMainActionMenu();
+        }
+
     }
 
     public void OnPlayerMove()
@@ -109,7 +122,15 @@ public class TurnManager : MonoBehaviour
 
         currentPlayerMoves--;
 
-        if (currentPlayerMoves <= 0)
+        if (actionMenuUI != null)
+        {
+            actionMenuUI.OnPlayerMoved();
+        }
+    }
+
+    public void ForceEndPlayerTurn()
+    {
+        if (currentTurnState == TurnState.PlayerTurn)
         {
             EndPlayerTurn();
         }
@@ -117,10 +138,14 @@ public class TurnManager : MonoBehaviour
 
     void EndPlayerTurn()
     {
-
         if (playerController != null)
         {
             playerController.SetCanMove(false);
+        }
+
+        if (actionMenuUI != null)
+        {
+            actionMenuUI.HideAllPanels();
         }
 
         StartEnemiesTurn();

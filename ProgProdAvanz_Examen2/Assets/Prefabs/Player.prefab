@@ -124,3 +124,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 10
+  playerName: Heroe
+  maxHealth: 100
+  currentHealth: 0
+  canMove: 0

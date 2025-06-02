@@ -7,6 +7,10 @@ public class EnemyController : MonoBehaviour
     public float moveSpeed = 1.5f;
     public string enemyName = "Enemigo";
 
+    [Header("Sistema de Vida")]
+    public int maxHealth = 50;
+    [SerializeField] private int currentHealth;
+
     [Header("Estado del Turno (Solo Lectura)")]
     [SerializeField] private int movesRemaining = 0;
     [SerializeField] private bool isMyTurn = false;
@@ -17,6 +21,23 @@ public class EnemyController : MonoBehaviour
     private Vector3 targetWorldPosition;
     private Action onMoveCompleteCallback;
 
+    private EnemyHealthUI healthBar;
+
+    public System.Action<int, int> OnHealthChanged; 
+
+    void Start()
+    {
+        currentHealth = maxHealth;
+
+        healthBar = GetComponentInChildren<EnemyHealthUI>();
+        if (healthBar != null)
+        {
+            healthBar.Initialize(this);
+        }
+
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+    }
+
     public void SetGridManager(GridManager manager)
     {
         gridManager = manager;
@@ -26,7 +47,6 @@ public class EnemyController : MonoBehaviour
     {
         currentGridPosition = new Vector2Int(gridX, gridZ);
         transform.position = gridManager.GetWorldPosition(gridX, gridZ);
-
     }
 
     public void StartTurn(int totalMoves, Action onMoveComplete)
@@ -65,7 +85,6 @@ public class EnemyController : MonoBehaviour
         Vector2Int direction = Vector2Int.zero;
         Vector2Int difference = playerPosition - currentGridPosition;
 
-        // Verificar si ya está adyacente al jugador
         if (Mathf.Abs(difference.x) <= 1 && Mathf.Abs(difference.y) <= 1 &&
             (Mathf.Abs(difference.x) + Mathf.Abs(difference.y)) == 1)
         {
@@ -176,6 +195,45 @@ public class EnemyController : MonoBehaviour
         }
     }
 
+    public void TakeDamage(int damage)
+    {
+        currentHealth = Mathf.Max(0, currentHealth - damage);
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+
+        Debug.Log($"{enemyName} recibe {damage} de daño. Vida actual: {currentHealth}/{maxHealth}");
+
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+    }
+
+    void Die()
+    {
+        Debug.Log($"{enemyName} ha muerto!");
+        Destroy(gameObject);
+    }
+
+    public bool IsAlive()
+    {
+        return currentHealth > 0;
+    }
+
+    public int GetCurrentHealth()
+    {
+        return currentHealth;
+    }
+
+    public int GetMaxHealth()
+    {
+        return maxHealth;
+    }
+
+    public float GetHealthPercentage()
+    {
+        return maxHealth > 0 ? (float)currentHealth / maxHealth : 0f;
+    }
+
     public Vector2Int GetGridPosition()
     {
         return currentGridPosition;
@@ -190,4 +248,5 @@ public class EnemyController : MonoBehaviour
     {
         return isMyTurn;
     }
+
 }
