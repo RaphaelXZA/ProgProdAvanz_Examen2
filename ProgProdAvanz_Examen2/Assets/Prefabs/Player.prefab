@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 7831208314249598260}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -127,4 +127,7 @@ MonoBehaviour:
   playerName: Heroe
   maxHealth: 100
   currentHealth: 0
+  minAttack: 7
+  maxAttack: 10
   canMove: 0
+  attackIncreasePerKill: 5

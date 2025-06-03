@@ -363,6 +363,18 @@ public class EnemyController : MonoBehaviour
     void Die()
     {
         Debug.Log($"{enemyName} ha muerto!");
+
+        PlayerController player = FindFirstObjectByType<PlayerController>();
+        if (player != null)
+        {
+            player.OnEnemyKilled();
+        }
+
+        if (VictoryChecker.Instance != null)
+        {
+            VictoryChecker.Instance.OnEnemyKilled();
+        }
+
         Destroy(gameObject);
     }
 

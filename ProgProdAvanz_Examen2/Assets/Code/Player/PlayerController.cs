@@ -22,8 +22,11 @@ public class PlayerController : MonoBehaviour
     private bool isMoving = false;
     private Vector3 targetWorldPosition;
 
+    [Header("Sistema de Mejora")]
+    public int attackIncreasePerKill = 1; 
+
     public System.Action<int, int> OnHealthChanged;
-    public System.Action<int, int> OnAttackChanged; 
+    public System.Action<int, int> OnAttackChanged;
 
     void Start()
     {
@@ -163,6 +166,12 @@ public class PlayerController : MonoBehaviour
         Debug.Log($"{playerName} se cura {healAmount} puntos. Vida actual: {currentHealth}/{maxHealth}");
     }
 
+    public void OnEnemyKilled()
+    {
+        IncreaseAttack(attackIncreasePerKill, attackIncreasePerKill);
+        Debug.Log($"{playerName} se vuelve más fuerte! Nuevo ataque: {minAttack}-{maxAttack}");
+    }
+
     public int PerformAttack()
     {
         int damage = Random.Range(minAttack, maxAttack + 1);
@@ -182,7 +191,7 @@ public class PlayerController : MonoBehaviour
 
     void Die()
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene("GameOverScene");
+        UnityEngine.SceneManagement.SceneManager.LoadScene("GameOver");
     }
 
     public bool IsAlive()

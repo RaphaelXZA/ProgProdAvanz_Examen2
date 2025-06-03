@@ -557,7 +557,7 @@ GameObject:
   - component: {fileID: 2780997580512300537}
   m_Layer: 0
   m_Name: Enemy
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -673,8 +673,11 @@ MonoBehaviour:
   currentHealth: 0
   minAttack: 3
   maxAttack: 6
+  attackAnimationSpeed: 8
+  attackDistance: 0.3
   movesRemaining: 0
   isMyTurn: 0
+  hasAttackedThisTurn: 0
 --- !u!1 &7487467730736373165
 GameObject:
   m_ObjectHideFlags: 0
