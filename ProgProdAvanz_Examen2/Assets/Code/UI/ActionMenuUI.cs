@@ -1,13 +1,17 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections.Generic;
+using System.Collections;
 
 public class ActionMenuUI : MonoBehaviour
 {
     [Header("Paneles de UI")]
     public GameObject mainActionPanel;
     public GameObject moveActionPanel;
-    public GameObject restConfirmPanel;  
+    public GameObject attackActionPanel;
+    public GameObject attackResultPanel;  
+    public GameObject restConfirmPanel;
     public GameObject endTurnConfirmPanel;
 
     [Header("Botones del Menú Principal")]
@@ -20,7 +24,16 @@ public class ActionMenuUI : MonoBehaviour
     public TextMeshProUGUI movesRemainingText;
     public Button backToMainMenuButton;
 
-    [Header("Panel de Confirmación de Descanso")]  
+    [Header("Panel de Ataque")]
+    public Transform attackButtonsParent;
+    public GameObject attackButtonPrefab;
+    public Button backFromAttackButton;
+
+    [Header("Panel de Resultado de Ataque")] 
+    public TextMeshProUGUI attackResultText;   
+    public Button finishTurnAfterAttackButton;  
+
+    [Header("Panel de Confirmación de Descanso")]
     public TextMeshProUGUI restDescriptionText;
     public Button confirmRestButton;
     public Button cancelRestButton;
@@ -32,10 +45,16 @@ public class ActionMenuUI : MonoBehaviour
     [Header("Referencia al Jugador")]
     public PlayerController playerController;
 
-    [Header("Configuración de Descanso")]  
-    public int healAmount = 25;  
+    [Header("Configuración de Descanso")]
+    public int healAmount = 25;
+
+    [Header("Configuración de Ataque")]  
+    public float attackAnimationSpeed = 10f;    
+    public float attackDistance = 0.3f;         
 
     private bool isInMoveMode = false;
+    private bool isAttacking = false;  
+    private List<GameObject> generatedAttackButtons = new List<GameObject>();
 
     public static ActionMenuUI Instance { get; private set; }
 
@@ -78,6 +97,14 @@ public class ActionMenuUI : MonoBehaviour
         if (backToMainMenuButton != null)
             backToMainMenuButton.onClick.AddListener(OnBackToMainMenuClicked);
 
+        //Botón de volver del panel de ataque
+        if (backFromAttackButton != null)
+            backFromAttackButton.onClick.AddListener(OnBackFromAttackClicked);
+
+        //Botón para terminar turno después de atacar
+        if (finishTurnAfterAttackButton != null)
+            finishTurnAfterAttackButton.onClick.AddListener(OnFinishTurnAfterAttackClicked);
+
         //Botones del panel de confirmación de descanso
         if (confirmRestButton != null)
             confirmRestButton.onClick.AddListener(OnConfirmRestClicked);
@@ -97,7 +124,9 @@ public class ActionMenuUI : MonoBehaviour
     {
         mainActionPanel.SetActive(true);
         moveActionPanel.SetActive(false);
-        restConfirmPanel.SetActive(false);  
+        attackActionPanel.SetActive(false);
+        attackResultPanel.SetActive(false);  
+        restConfirmPanel.SetActive(false);
         endTurnConfirmPanel.SetActive(false);
         isInMoveMode = false;
 
@@ -110,7 +139,9 @@ public class ActionMenuUI : MonoBehaviour
     {
         mainActionPanel.SetActive(false);
         moveActionPanel.SetActive(false);
-        restConfirmPanel.SetActive(false);  
+        attackActionPanel.SetActive(false);
+        attackResultPanel.SetActive(false);  
+        restConfirmPanel.SetActive(false);
         endTurnConfirmPanel.SetActive(false);
         isInMoveMode = false;
     }
@@ -119,22 +150,69 @@ public class ActionMenuUI : MonoBehaviour
     {
         if (attackButton != null)
         {
-            attackButton.interactable = false;
+            List<EnemyController> adjacentEnemies = GetAdjacentEnemies();
+            attackButton.interactable = adjacentEnemies.Count > 0 && !isAttacking;  
+
+            Debug.Log($"Enemigos adyacentes encontrados: {adjacentEnemies.Count}");
         }
 
         if (restButton != null && playerController != null)
         {
-            bool canRest = playerController.GetCurrentHealth() < playerController.GetMaxHealth();
+            bool canRest = playerController.GetCurrentHealth() < playerController.GetMaxHealth() && !isAttacking;
             restButton.interactable = canRest;
         }
 
         if (moveButton != null)
         {
-            bool canMoveNow = TurnManager.Instance.GetPlayerMovesRemaining() > 0;
-            moveButton.interactable = canMoveNow;   
+            bool canMoveNow = TurnManager.Instance.GetPlayerMovesRemaining() > 0 && !isAttacking;
+            moveButton.interactable = canMoveNow;
         }
     }
 
+    List<EnemyController> GetAdjacentEnemies()
+    {
+        List<EnemyController> adjacentEnemies = new List<EnemyController>();
+
+        if (playerController == null) return adjacentEnemies;
+
+        Vector2Int playerPos = playerController.GetGridPosition();
+
+        Vector2Int[] directions = {
+            Vector2Int.up,
+            Vector2Int.down,
+            Vector2Int.left,
+            Vector2Int.right
+        };
+
+        foreach (Vector2Int direction in directions)
+        {
+            Vector2Int checkPos = playerPos + direction;
+            EnemyController enemy = GetEnemyAtPosition(checkPos);
+
+            if (enemy != null && enemy.IsAlive())
+            {
+                adjacentEnemies.Add(enemy);
+                Debug.Log($"Enemigo {enemy.enemyName} encontrado en posición {checkPos}");
+            }
+        }
+
+        return adjacentEnemies;
+    }
+
+    EnemyController GetEnemyAtPosition(Vector2Int position)
+    {
+        EnemyController[] allEnemies = FindObjectsByType<EnemyController>(FindObjectsSortMode.None);
+
+        foreach (EnemyController enemy in allEnemies)
+        {
+            if (enemy.GetGridPosition() == position && enemy.IsAlive())
+            {
+                return enemy;
+            }
+        }
+
+        return null;
+    }
 
     void OnMoveButtonClicked()
     {
@@ -152,7 +230,178 @@ public class ActionMenuUI : MonoBehaviour
     void OnAttackButtonClicked()
     {
         Debug.Log("Botón Atacar clickeado");
-        //Lógica de ataque para el futuro
+        ShowAttackMenu();
+    }
+
+    void ShowAttackMenu()
+    {
+        List<EnemyController> adjacentEnemies = GetAdjacentEnemies();
+
+        if (adjacentEnemies.Count == 0)
+        {
+            Debug.Log("No hay enemigos adyacentes para atacar");
+            return;
+        }
+
+        mainActionPanel.SetActive(false);
+        moveActionPanel.SetActive(false);
+        restConfirmPanel.SetActive(false);
+        endTurnConfirmPanel.SetActive(false);
+        attackResultPanel.SetActive(false);
+        attackActionPanel.SetActive(true);
+
+        ClearAttackButtons();
+        GenerateAttackButtons(adjacentEnemies);
+
+        Debug.Log($"Panel de ataque mostrado con {adjacentEnemies.Count} enemigos");
+    }
+
+    void ClearAttackButtons()
+    {
+        foreach (GameObject button in generatedAttackButtons)
+        {
+            if (button != null)
+            {
+                Destroy(button);
+            }
+        }
+        generatedAttackButtons.Clear();
+    }
+
+    void GenerateAttackButtons(List<EnemyController> enemies)
+    {
+        if (attackButtonPrefab == null || attackButtonsParent == null)
+        {
+            Debug.LogError("Attack button prefab o parent no asignados en el inspector");
+            return;
+        }
+
+        foreach (EnemyController enemy in enemies)
+        {
+            GameObject buttonObj = Instantiate(attackButtonPrefab, attackButtonsParent);
+            generatedAttackButtons.Add(buttonObj);
+
+            TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
+            if (buttonText != null)
+            {
+                buttonText.text = enemy.enemyName;
+            }
+
+            Button button = buttonObj.GetComponent<Button>();
+            if (button != null)
+            {
+                EnemyController targetEnemy = enemy;
+                button.onClick.AddListener(() => OnEnemyAttackButtonClicked(targetEnemy));
+            }
+
+            Debug.Log($"Botón generado para atacar a {enemy.enemyName}");
+        }
+    }
+
+    void OnEnemyAttackButtonClicked(EnemyController targetEnemy)
+    {
+        if (isAttacking || playerController == null || targetEnemy == null || !targetEnemy.IsAlive())
+        {
+            Debug.Log("No se puede atacar en este momento");
+            return;
+        }
+
+        Debug.Log($"Iniciando ataque a {targetEnemy.enemyName}");
+
+        isAttacking = true;
+
+        attackActionPanel.SetActive(false);
+
+        StartCoroutine(ExecuteAttackSequence(targetEnemy));
+    }
+
+    IEnumerator ExecuteAttackSequence(EnemyController target)
+    {
+        if (playerController == null || target == null)
+        {
+            Debug.LogError("PlayerController o target es null");
+            yield break;
+        }
+
+        int damage = playerController.PerformAttack();
+
+        Vector3 originalPosition = playerController.transform.position;
+
+        Vector3 targetPosition = target.transform.position;
+        Vector3 direction = (targetPosition - originalPosition).normalized;
+        Vector3 attackPosition = targetPosition - direction * attackDistance;
+
+        Debug.Log($"Animación de ataque: {originalPosition} -> {attackPosition}");
+
+        float attackDuration = 0.2f;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < attackDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float progress = elapsedTime / attackDuration;
+
+            playerController.transform.position = Vector3.Lerp(originalPosition, attackPosition, progress);
+
+            yield return null;
+        }
+
+        target.TakeDamage(damage);
+
+        Debug.Log($"Daño aplicado: {damage} a {target.enemyName}");
+
+        yield return new WaitForSeconds(0.1f);
+
+        float returnDuration = 0.2f;
+        elapsedTime = 0f;
+
+        while (elapsedTime < returnDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float progress = elapsedTime / returnDuration;
+
+            playerController.transform.position = Vector3.Lerp(attackPosition, originalPosition, progress);
+
+            yield return null;
+        }
+
+        playerController.transform.position = originalPosition;
+
+        ShowAttackResult(target.enemyName, damage, target.IsAlive());
+    }
+
+    void ShowAttackResult(string enemyName, int damage, bool enemyStillAlive)
+    {
+        attackResultPanel.SetActive(true);
+
+        if (attackResultText != null)
+        {
+            string resultMessage;
+            if (enemyStillAlive)
+            {
+                resultMessage = $"Atacaste a {enemyName} por {damage} de daño.";
+            }
+            else
+            {
+                resultMessage = $"Atacaste a {enemyName} por {damage} de daño.\n\n¡{enemyName} ha sido derrotado!";
+            }
+
+            attackResultText.text = resultMessage;
+        }
+
+        Debug.Log($"Resultado del ataque mostrado. Enemigo vivo: {enemyStillAlive}");
+    }
+
+    void OnFinishTurnAfterAttackClicked()
+    {
+        Debug.Log("Terminando turno después del ataque");
+        EndPlayerTurn();
+    }
+
+    void OnBackFromAttackClicked()
+    {
+        Debug.Log("Volviendo del panel de ataque al menú principal");
+        ShowMainActionMenu();
     }
 
     void OnRestButtonClicked()
@@ -198,8 +447,6 @@ public class ActionMenuUI : MonoBehaviour
         ShowMainActionMenu();
     }
 
-
-
     void ShowRestConfirmation()
     {
         if (playerController == null)
@@ -219,6 +466,8 @@ public class ActionMenuUI : MonoBehaviour
 
         mainActionPanel.SetActive(false);
         moveActionPanel.SetActive(false);
+        attackActionPanel.SetActive(false);
+        attackResultPanel.SetActive(false); 
         endTurnConfirmPanel.SetActive(false);
         restConfirmPanel.SetActive(true);
 
@@ -243,19 +492,17 @@ public class ActionMenuUI : MonoBehaviour
         EndPlayerTurn();
     }
 
-
-
     void ShowEndTurnConfirmation()
     {
         mainActionPanel.SetActive(false);
         moveActionPanel.SetActive(false);
-        restConfirmPanel.SetActive(false); 
+        attackActionPanel.SetActive(false);
+        attackResultPanel.SetActive(false); 
+        restConfirmPanel.SetActive(false);
         endTurnConfirmPanel.SetActive(true);
 
         Debug.Log("Panel de confirmación de turno mostrado");
     }
-
-
 
     void TryFindPlayerController()
     {
@@ -384,6 +631,8 @@ public class ActionMenuUI : MonoBehaviour
 
     public void EndPlayerTurn()
     {
+        isAttacking = false;
+
         HideAllPanels();
 
         if (playerController != null)

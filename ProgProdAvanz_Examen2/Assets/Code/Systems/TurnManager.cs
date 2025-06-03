@@ -113,7 +113,6 @@ public class TurnManager : MonoBehaviour
         {
             actionMenuUI.ShowMainActionMenu();
         }
-
     }
 
     public void OnPlayerMove()
@@ -174,6 +173,13 @@ public class TurnManager : MonoBehaviour
             return;
         }
 
+        if (enemies[currentEnemyIndex] == null)
+        {
+            currentEnemyIndex++;
+            StartCurrentEnemyTurn();
+            return;
+        }
+
         EnemyController currentEnemy = enemies[currentEnemyIndex];
         currentEnemyMoves = enemyMovesPerTurn;
 
@@ -184,6 +190,22 @@ public class TurnManager : MonoBehaviour
     {
         if (currentTurnState != TurnState.EnemyTurn) return;
 
+        if (currentEnemyIndex >= enemies.Count || enemies[currentEnemyIndex] == null)
+        {
+            currentEnemyIndex++;
+            StartCurrentEnemyTurn();
+            return;
+        }
+
+        EnemyController currentEnemy = enemies[currentEnemyIndex];
+
+        if (currentEnemy.IsMyTurn() == false)
+        {
+            currentEnemyIndex++;
+            StartCurrentEnemyTurn();
+            return;
+        }
+
         currentEnemyMoves--;
 
         if (currentEnemyMoves <= 0)
@@ -193,7 +215,6 @@ public class TurnManager : MonoBehaviour
         }
         else
         {
-            EnemyController currentEnemy = enemies[currentEnemyIndex];
             currentEnemy.ContinueTurn();
         }
     }

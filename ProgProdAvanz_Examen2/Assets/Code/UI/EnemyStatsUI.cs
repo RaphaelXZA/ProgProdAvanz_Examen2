@@ -2,13 +2,14 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EnemyHealthUI : MonoBehaviour
+public class EnemyStatsUI : MonoBehaviour
 {
     [Header("Referencias")]
-    public Canvas healthCanvas;
+    public Canvas statsCanvas;
     public Image healthBarBackground;
     public Image healthBarFill;
     public TextMeshProUGUI enemyNameText;
+    public TextMeshProUGUI attackText;       
 
     [Header("Configuración")]
     public Vector3 offset = new Vector3(0, 2.5f, 0);
@@ -37,24 +38,19 @@ public class EnemyHealthUI : MonoBehaviour
             playerCamera = FindFirstObjectByType<Camera>();
         }
 
-        if (healthCanvas != null)
+        if (statsCanvas != null)
         {
-            healthCanvas.worldCamera = playerCamera;
-            healthCanvas.renderMode = RenderMode.WorldSpace;
+            statsCanvas.worldCamera = playerCamera;
+            statsCanvas.renderMode = RenderMode.WorldSpace;
 
-            healthCanvas.transform.localScale = Vector3.one * 0.01f;
+            statsCanvas.transform.localScale = Vector3.one * 0.01f;
         }
 
         if (healthBarFill != null)
         {
             healthBarFill.type = Image.Type.Filled;
             healthBarFill.fillMethod = Image.FillMethod.Horizontal;
-            healthBarFill.fillAmount = 1f; 
-        }
-
-        if (enemyNameText != null)
-        {
-            enemyNameText.text = enemyController.enemyName;
+            healthBarFill.fillAmount = 1f;
         }
     }
 
@@ -79,8 +75,15 @@ public class EnemyHealthUI : MonoBehaviour
         if (enemyController != null)
         {
             enemyController.OnHealthChanged += OnHealthChanged;
+            enemyController.OnAttackChanged += OnAttackChanged;  
+
+            if (enemyNameText != null)
+            {
+                enemyNameText.text = enemyController.enemyName;
+            }
 
             OnHealthChanged(enemyController.GetCurrentHealth(), enemyController.GetMaxHealth());
+            OnAttackChanged(enemyController.GetMinAttack(), enemyController.GetMaxAttack()); 
         }
     }
 
@@ -97,6 +100,14 @@ public class EnemyHealthUI : MonoBehaviour
         if (currentHealth <= 0)
         {
             gameObject.SetActive(false);
+        }
+    }
+
+    void OnAttackChanged(int minAttack, int maxAttack)
+    {
+        if (attackText != null)
+        {
+            attackText.text = $"ATK: {minAttack} - {maxAttack}";
         }
     }
 
@@ -127,6 +138,7 @@ public class EnemyHealthUI : MonoBehaviour
         if (enemyController != null)
         {
             enemyController.OnHealthChanged -= OnHealthChanged;
+            enemyController.OnAttackChanged -= OnAttackChanged;  
         }
     }
 
@@ -148,5 +160,4 @@ public class EnemyHealthUI : MonoBehaviour
     {
         gameObject.SetActive(false);
     }
-
 }

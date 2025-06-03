@@ -10,6 +10,10 @@ public class PlayerController : MonoBehaviour
     public int maxHealth = 100;
     [SerializeField] private int currentHealth;
 
+    [Header("Sistema de Ataque")]
+    public int minAttack = 7;
+    public int maxAttack = 10;
+
     [Header("Estado del Turno (Solo Lectura)")]
     [SerializeField] private bool canMove = false;
 
@@ -18,13 +22,15 @@ public class PlayerController : MonoBehaviour
     private bool isMoving = false;
     private Vector3 targetWorldPosition;
 
-    public System.Action<int, int> OnHealthChanged; 
+    public System.Action<int, int> OnHealthChanged;
+    public System.Action<int, int> OnAttackChanged; 
 
     void Start()
     {
         currentHealth = maxHealth;
 
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        OnAttackChanged?.Invoke(minAttack, maxAttack);  
     }
 
     public void SetGridManager(GridManager manager)
@@ -157,9 +163,26 @@ public class PlayerController : MonoBehaviour
         Debug.Log($"{playerName} se cura {healAmount} puntos. Vida actual: {currentHealth}/{maxHealth}");
     }
 
+    public int PerformAttack()
+    {
+        int damage = Random.Range(minAttack, maxAttack + 1);
+        Debug.Log($"{playerName} ataca por {damage} de daño (rango: {minAttack}-{maxAttack})");
+        return damage;
+    }
+
+    public void IncreaseAttack(int minIncrease, int maxIncrease)
+    {
+        minAttack += minIncrease;
+        maxAttack += maxIncrease;
+
+        OnAttackChanged?.Invoke(minAttack, maxAttack);
+
+        Debug.Log($"{playerName} aumenta su ataque. Nuevo rango: {minAttack}-{maxAttack}");
+    }
+
     void Die()
     {
-        Debug.Log($"{playerName} ha muerto!");
+        UnityEngine.SceneManagement.SceneManager.LoadScene("GameOverScene");
     }
 
     public bool IsAlive()
@@ -182,6 +205,21 @@ public class PlayerController : MonoBehaviour
         return maxHealth > 0 ? (float)currentHealth / maxHealth : 0f;
     }
 
+    public int GetMinAttack()
+    {
+        return minAttack;
+    }
+
+    public int GetMaxAttack()
+    {
+        return maxAttack;
+    }
+
+    public string GetAttackRange()
+    {
+        return $"{minAttack}-{maxAttack}";
+    }
+
     public void SetCanMove(bool canMoveState)
     {
         canMove = canMoveState;
@@ -202,6 +240,4 @@ public class PlayerController : MonoBehaviour
     {
         return canMove;
     }
-
-    
 }

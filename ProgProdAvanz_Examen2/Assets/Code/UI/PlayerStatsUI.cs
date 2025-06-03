@@ -2,12 +2,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class PlayerHealthUI : MonoBehaviour
+public class PlayerStatsUI : MonoBehaviour
 {
     [Header("Referencias UI")]
     public Image healthBarFill;
     public TextMeshProUGUI healthText;
     public TextMeshProUGUI playerNameText;
+    public TextMeshProUGUI attackText;  
 
     [Header("Colores de la Barra")]
     public Color healthyColor = Color.green;
@@ -22,7 +23,7 @@ public class PlayerHealthUI : MonoBehaviour
 
     private PlayerController playerController;
 
-    public static PlayerHealthUI Instance { get; private set; }
+    public static PlayerStatsUI Instance { get; private set; }
 
     void Awake()
     {
@@ -54,6 +55,7 @@ public class PlayerHealthUI : MonoBehaviour
         if (playerController != null)
         {
             playerController.OnHealthChanged += OnPlayerHealthChanged;
+            playerController.OnAttackChanged += OnPlayerAttackChanged;  
 
             if (playerNameText != null)
             {
@@ -61,12 +63,13 @@ public class PlayerHealthUI : MonoBehaviour
             }
 
             OnPlayerHealthChanged(playerController.GetCurrentHealth(), playerController.GetMaxHealth());
+            OnPlayerAttackChanged(playerController.GetMinAttack(), playerController.GetMaxAttack());  
 
-            Debug.Log("PlayerHealthUI conectado al PlayerController");
+            Debug.Log("PlayerStatsUI conectado al PlayerController");
         }
         else
         {
-            Debug.LogWarning("PlayerController no encontrado para PlayerHealthUI");
+            Debug.LogWarning("PlayerController no encontrado para PlayerStatsUI");
             Invoke(nameof(FindPlayerController), 0.1f);
         }
     }
@@ -84,6 +87,14 @@ public class PlayerHealthUI : MonoBehaviour
         if (healthText != null)
         {
             healthText.text = $"Vida: {currentHealth} / {maxHealth}";
+        }
+    }
+
+    void OnPlayerAttackChanged(int minAttack, int maxAttack)
+    {
+        if (attackText != null)
+        {
+            attackText.text = $"ATK: {minAttack} - {maxAttack}";
         }
     }
 
@@ -114,6 +125,7 @@ public class PlayerHealthUI : MonoBehaviour
         if (playerController != null)
         {
             playerController.OnHealthChanged -= OnPlayerHealthChanged;
+            playerController.OnAttackChanged -= OnPlayerAttackChanged;  
         }
     }
 
@@ -122,6 +134,7 @@ public class PlayerHealthUI : MonoBehaviour
         if (playerController != null)
         {
             playerController.OnHealthChanged -= OnPlayerHealthChanged;
+            playerController.OnAttackChanged -= OnPlayerAttackChanged;  
         }
 
         playerController = controller;
@@ -129,6 +142,7 @@ public class PlayerHealthUI : MonoBehaviour
         if (playerController != null)
         {
             playerController.OnHealthChanged += OnPlayerHealthChanged;
+            playerController.OnAttackChanged += OnPlayerAttackChanged;  
 
             if (playerNameText != null)
             {
@@ -136,7 +150,7 @@ public class PlayerHealthUI : MonoBehaviour
             }
 
             OnPlayerHealthChanged(playerController.GetCurrentHealth(), playerController.GetMaxHealth());
+            OnPlayerAttackChanged(playerController.GetMinAttack(), playerController.GetMaxAttack());  
         }
     }
-
 }
