@@ -22,6 +22,7 @@ public class VictorySceneManager : MonoBehaviour
         SetupUI();
         SetupButtonListeners();
         DisplayGameStats();
+        SubmitStatsToLeaderboards();
 
         //TROFEO
         if (TrophyManager.Instance != null)
@@ -82,6 +83,25 @@ public class VictorySceneManager : MonoBehaviour
         }
     }
 
+    void SubmitStatsToLeaderboards()
+    {
+        if (GameStatsManager.Instance != null && RankingsManager.Instance != null)
+        {
+            int totalTurns = GameStatsManager.Instance.GetTotalPlayerTurns();
+            int totalSteps = GameStatsManager.Instance.GetTotalStepsTaken();
+
+            RankingsManager.Instance.SubmitGameStats(totalTurns, totalSteps);
+        }
+        else
+        {
+            if (GameStatsManager.Instance == null)
+                Debug.LogWarning("GameStatsManager no encontrado para subir records");
+
+            if (RankingsManager.Instance == null)
+                Debug.LogWarning("RankingManager no encontrado para subir records");
+        }
+    }
+
     void OnPlayAgainButtonClicked()
     {
         if (GameStatsManager.Instance != null)
@@ -95,16 +115,6 @@ public class VictorySceneManager : MonoBehaviour
     void OnMainMenuButtonClicked()
     {
         SceneManager.LoadScene(mainMenuSceneName);
-    }
-
-    public void PlayAgain()
-    {
-        OnPlayAgainButtonClicked();
-    }
-
-    public void GoToMainMenu()
-    {
-        OnMainMenuButtonClicked();
     }
 
     void OnDestroy()
