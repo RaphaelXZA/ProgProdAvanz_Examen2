@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="BossController" Collapsed="true">
+    <Position X="4.75" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CQARACCIcCoEBBIoAIAEFIABAmCEAABgQEAAgCCAAAA=</HashCode>
+      <FileName>Assets\Code\Enemy\BossController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EnemyController" Collapsed="true">
+    <Position X="3" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>GQQRACGIUCoAQBIoAIAFFYABAmGEAQFgQEABgCCEAgA=</HashCode>
+      <FileName>Assets\Code\Enemy\EnemyController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PlayerController" Collapsed="true">
+    <Position X="10.25" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CQQQACCIUCAgAAKgCAEEBYQBImAEAAFAQEABgCAAAgA=</HashCode>
+      <FileName>Assets\Code\Player\PlayerController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GameOverManager" Collapsed="true">
+    <Position X="2.75" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAFAAIAACAAAAAAAAAAAAAAAQAAAAQAEAAABCgAAAA=</HashCode>
+      <FileName>Assets\Code\Systems\GameOverManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GameStatsManager" Collapsed="true">
+    <Position X="10.5" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABQgAEACAEQAACAAAAAAEAAAAAAAAAUAAAACAAAEA=</HashCode>
+      <FileName>Assets\Code\Systems\GameStatsManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GridManager" Collapsed="true">
+    <Position X="14" Y="1" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="GridManager.CellType" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\Code\Systems\GridManager.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAgEEAgCECIEAAAAAhABwAAAhIRgACIBASBQAICAKMA=</HashCode>
+      <FileName>Assets\Code\Systems\GridManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="LoginSceneManager" Collapsed="true">
+    <Position X="12.25" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\Code\Systems\LoginSceneManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MainMenuManager" Collapsed="true">
+    <Position X="6.5" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgAIAAAQAAAAAAAAAAAAAAAgAAAAgAAAAAAAAAAAAEA=</HashCode>
+      <FileName>Assets\Code\Systems\MainMenuManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RankingsManager" Collapsed="true">
+    <Position X="4.75" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAABAAAAAAAAAAAAAAAAAAAAAAAAgQQAAAAAAAAEA=</HashCode>
+      <FileName>Assets\Code\Systems\RankingsManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TrophyManager" Collapsed="true">
+    <Position X="6.5" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAACAADKFAAAgAAAAABAACAAIAAABKQAAAAAAIAGA=</HashCode>
+      <FileName>Assets\Code\Systems\TrophyManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TurnManager" Collapsed="true">
+    <Position X="0.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEwAAAkSQCAAAIUIEAAAhIAACABAAIQBQApAEAACAEA=</HashCode>
+      <FileName>Assets\Code\Systems\TurnManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="VictoryChecker" Collapsed="true">
+    <Position X="8.5" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAAACAAECAAQAAgAECAAAAAAABAQAAgACAAAEA=</HashCode>
+      <FileName>Assets\Code\Systems\VictoryChecker.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="VictorySceneManager" Collapsed="true">
+    <Position X="16" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAFAAAAAiAAAAAAAAAAAAAAAUAAAAAAEAAARChAARA=</HashCode>
+      <FileName>Assets\Code\Systems\VictorySceneManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ActionMenuUI" Collapsed="true">
+    <Position X="14" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>jYAgqAEBACEUwpEooAQAIAACwATpBKQAQLhBJ3aRgOA=</HashCode>
+      <FileName>Assets\Code\UI\ActionMenuUI.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EnemyStatsUI" Collapsed="true">
+    <Position X="12" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAWFAAAAACAAESAAEAAEgAAAAEAUAAAQAQRggCGAgAA=</HashCode>
+      <FileName>Assets\Code\UI\EnemyStatsUI.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PlayerStatsUI" Collapsed="true">
+    <Position X="8.5" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEBAAAAACAAUEAAEAAAAAAAAAARAAAQQABgAAEQgEA=</HashCode>
+      <FileName>Assets\Code\UI\PlayerStatsUI.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Enum Name="TurnState" Collapsed="true">
+    <Position X="0.75" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAABAAAAAAAAAAAABAgAAAAAgAAA=</HashCode>
+      <FileName>Assets\Code\Systems\TurnManager.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
