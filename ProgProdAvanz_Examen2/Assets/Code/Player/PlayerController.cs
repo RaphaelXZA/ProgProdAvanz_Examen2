@@ -116,6 +116,11 @@ public class PlayerController : MonoBehaviour
         targetWorldPosition = gridManager.GetWorldPosition(gridX, gridZ);
         isMoving = true;
 
+        if (GameStatsManager.Instance != null)
+        {
+            GameStatsManager.Instance.OnPlayerStepTaken();
+        }
+
 
         if (TurnManager.Instance != null)
         {

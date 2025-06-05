@@ -108,6 +108,11 @@ public class TurnManager : MonoBehaviour
         currentTurnState = TurnState.PlayerTurn;
         currentPlayerMoves = playerMovesPerTurn;
 
+        if (GameStatsManager.Instance != null)
+        {
+            GameStatsManager.Instance.OnPlayerTurnStarted();
+        }
+
         if (playerController != null)
         {
             playerController.SetCanMove(false);

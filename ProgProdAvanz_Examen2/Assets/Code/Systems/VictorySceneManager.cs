@@ -9,6 +9,10 @@ public class VictorySceneManager : MonoBehaviour
     public Button playAgainButton;
     public Button mainMenuButton;
 
+    [Header("Referencias de Estadísticas")]
+    public TextMeshProUGUI totalTurnsText;
+    public TextMeshProUGUI totalStepsText;
+
     [Header("Configuración")]
     public string gameplaySceneName = "GameplayScene";
     public string mainMenuSceneName = "MainMenu";
@@ -17,6 +21,7 @@ public class VictorySceneManager : MonoBehaviour
     {
         SetupUI();
         SetupButtonListeners();
+        DisplayGameStats();
     }
 
     void SetupUI()
@@ -38,8 +43,46 @@ public class VictorySceneManager : MonoBehaviour
         }
     }
 
+    void DisplayGameStats()
+    {
+        if (GameStatsManager.Instance != null)
+        {
+            int totalTurns = GameStatsManager.Instance.GetTotalPlayerTurns();
+            int totalSteps = GameStatsManager.Instance.GetTotalStepsTaken();
+
+            if (totalTurnsText != null)
+            {
+                totalTurnsText.text = $"Turnos Usados: {totalTurns}";
+            }
+
+            if (totalStepsText != null)
+            {
+                totalStepsText.text = $"Pasos Dados: {totalSteps}";
+            }
+        }
+        else
+        {
+            Debug.LogWarning("VictoryScene: GameStatsManager no encontrado");
+
+            if (totalTurnsText != null)
+            {
+                totalTurnsText.text = "Turnos Completados: --";
+            }
+
+            if (totalStepsText != null)
+            {
+                totalStepsText.text = "Pasos Dados: --";
+            }
+        }
+    }
+
     void OnPlayAgainButtonClicked()
     {
+        if (GameStatsManager.Instance != null)
+        {
+            GameStatsManager.Instance.ResetStats();
+        }
+
         SceneManager.LoadScene(gameplaySceneName);
     }
 
