@@ -589,6 +589,13 @@ public class ActionMenuUI : MonoBehaviour
         }
 
         playerController.Heal(healAmount);
+
+        //TROFEO
+        if (TrophyManager.Instance != null)
+        {
+            TrophyManager.Instance.OnRestActionUsed();
+        }
+
         EndPlayerTurn();
     }
 

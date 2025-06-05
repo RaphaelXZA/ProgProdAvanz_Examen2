@@ -169,6 +169,12 @@ public class PlayerController : MonoBehaviour
     public void OnEnemyKilled()
     {
         IncreaseAttack(attackIncreasePerKill, attackIncreasePerKill);
+        
+        //TROFEO
+        if (TrophyManager.Instance != null)
+        {
+            TrophyManager.Instance.OnEnemyKilled();
+        }
     }
 
     public int PerformAttack()

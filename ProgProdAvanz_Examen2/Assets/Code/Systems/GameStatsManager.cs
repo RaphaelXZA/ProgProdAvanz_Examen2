@@ -43,6 +43,12 @@ public class GameStatsManager : MonoBehaviour
         {
             ResetStats();
         }
+
+        //REINICIAR TROFEOS
+        if (TrophyManager.Instance != null)
+        {
+            TrophyManager.Instance.ResetSessionProgress();
+        }
     }
 
     public void ResetStats()

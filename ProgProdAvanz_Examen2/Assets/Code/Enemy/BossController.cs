@@ -225,15 +225,15 @@ public class BossController : MonoBehaviour
 
     void Die()
     {
-        PlayerController player = FindFirstObjectByType<PlayerController>();
-        if (player != null)
-        {
-            player.OnEnemyKilled();
-        }
-
         if (VictoryChecker.Instance != null)
         {
             VictoryChecker.Instance.OnEnemyKilled();
+        }
+
+        //TROFEO
+        if (TrophyManager.Instance != null)
+        {
+            TrophyManager.Instance.OnBossKilled();
         }
 
         Destroy(gameObject);

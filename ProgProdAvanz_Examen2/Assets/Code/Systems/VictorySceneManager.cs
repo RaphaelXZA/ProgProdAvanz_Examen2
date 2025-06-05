@@ -22,6 +22,12 @@ public class VictorySceneManager : MonoBehaviour
         SetupUI();
         SetupButtonListeners();
         DisplayGameStats();
+
+        //TROFEO
+        if (TrophyManager.Instance != null)
+        {
+            TrophyManager.Instance.OnVictoryAchieved();
+        }
     }
 
     void SetupUI()
