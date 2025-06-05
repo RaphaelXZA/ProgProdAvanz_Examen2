@@ -5,6 +5,7 @@ public enum TurnState
 {
     PlayerTurn,
     EnemyTurn,
+    BossTurn,
     WaitingForMovement
 }
 
@@ -24,6 +25,7 @@ public class TurnManager : MonoBehaviour
     private GridManager gridManager;
     private PlayerController playerController;
     private List<EnemyController> enemies = new List<EnemyController>();
+    private BossController bossController;
     private ActionMenuUI actionMenuUI;
 
     public static TurnManager Instance { get; private set; }
@@ -56,7 +58,11 @@ public class TurnManager : MonoBehaviour
         EnemyController[] foundEnemies = FindObjectsByType<EnemyController>(FindObjectsSortMode.None);
         enemies.AddRange(foundEnemies);
 
-        Debug.Log($"TurnManager inicializado - Jugador: {(playerController != null ? "Encontrado" : "No encontrado")}, Enemigos: {enemies.Count}");
+        bossController = FindFirstObjectByType<BossController>();
+        if (bossController == null && gridManager != null)
+        {
+            bossController = gridManager.GetBossController();
+        }
 
         if (actionMenuUI != null && playerController != null)
         {
@@ -83,6 +89,12 @@ public class TurnManager : MonoBehaviour
                 {
                     string enemyName = enemies[currentEnemyIndex].enemyName;
                     currentTurnInfo = $"Turno de {enemyName} - Movimientos restantes: {currentEnemyMoves}";
+                }
+                break;
+            case TurnState.BossTurn:
+                if (bossController != null)
+                {
+                    currentTurnInfo = $"Turno del {bossController.bossName}";
                 }
                 break;
             case TurnState.WaitingForMovement:
@@ -113,6 +125,7 @@ public class TurnManager : MonoBehaviour
         {
             actionMenuUI.ShowMainActionMenu();
         }
+
     }
 
     public void OnPlayerMove()
@@ -152,9 +165,11 @@ public class TurnManager : MonoBehaviour
 
     void StartEnemiesTurn()
     {
+        enemies.RemoveAll(enemy => enemy == null || !enemy.IsAlive());
+
         if (enemies.Count == 0)
         {
-            StartPlayerTurn();
+            StartBossTurn();
             return;
         }
 
@@ -173,7 +188,7 @@ public class TurnManager : MonoBehaviour
             return;
         }
 
-        if (enemies[currentEnemyIndex] == null)
+        if (enemies[currentEnemyIndex] == null || !enemies[currentEnemyIndex].IsAlive())
         {
             currentEnemyIndex++;
             StartCurrentEnemyTurn();
@@ -221,6 +236,25 @@ public class TurnManager : MonoBehaviour
 
     void EndEnemiesTurn()
     {
+        StartBossTurn();
+    }
+
+    void StartBossTurn()
+    {
+        //Verificar si el boss sigue vivo
+        if (bossController == null || !bossController.IsAlive())
+        {
+            StartPlayerTurn();
+            return;
+        }
+
+        currentTurnState = TurnState.BossTurn;
+
+        bossController.StartTurn(OnBossTurnComplete);
+    }
+
+    public void OnBossTurnComplete()
+    {
         StartPlayerTurn();
     }
 
@@ -237,5 +271,15 @@ public class TurnManager : MonoBehaviour
     public int GetPlayerMovesRemaining()
     {
         return currentPlayerMoves;
+    }
+
+    public bool IsBossAlive()
+    {
+        return bossController != null && bossController.IsAlive();
+    }
+
+    public BossController GetBossController()
+    {
+        return bossController;
     }
 }

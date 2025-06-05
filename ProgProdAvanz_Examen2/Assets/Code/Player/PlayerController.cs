@@ -4,7 +4,7 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Configuración del Jugador")]
     public float moveSpeed = 2.0f;
-    public string playerName = "Jugador";
+    public string playerName = "Heroe";
 
     [Header("Sistema de Vida")]
     public int maxHealth = 100;
@@ -46,7 +46,6 @@ public class PlayerController : MonoBehaviour
         currentGridPosition = new Vector2Int(gridX, gridZ);
         transform.position = gridManager.GetWorldPosition(gridX, gridZ);
 
-        Debug.Log($"Jugador inicializado en: ({gridX}, {gridZ})");
     }
 
     void Update()
@@ -117,7 +116,6 @@ public class PlayerController : MonoBehaviour
         targetWorldPosition = gridManager.GetWorldPosition(gridX, gridZ);
         isMoving = true;
 
-        Debug.Log($"Jugador se mueve a: ({gridX}, {gridZ})");
 
         if (TurnManager.Instance != null)
         {
@@ -140,7 +138,6 @@ public class PlayerController : MonoBehaviour
                 transform.position = targetWorldPosition;
                 isMoving = false;
 
-                Debug.Log($"Jugador completó el movimiento a: {currentGridPosition}");
             }
         }
     }
@@ -150,7 +147,6 @@ public class PlayerController : MonoBehaviour
         currentHealth = Mathf.Max(0, currentHealth - damage);
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
 
-        Debug.Log($"{playerName} recibe {damage} de daño. Vida actual: {currentHealth}/{maxHealth}");
 
         if (currentHealth <= 0)
         {
@@ -163,19 +159,16 @@ public class PlayerController : MonoBehaviour
         currentHealth = Mathf.Min(maxHealth, currentHealth + healAmount);
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
 
-        Debug.Log($"{playerName} se cura {healAmount} puntos. Vida actual: {currentHealth}/{maxHealth}");
     }
 
     public void OnEnemyKilled()
     {
         IncreaseAttack(attackIncreasePerKill, attackIncreasePerKill);
-        Debug.Log($"{playerName} se vuelve más fuerte! Nuevo ataque: {minAttack}-{maxAttack}");
     }
 
     public int PerformAttack()
     {
         int damage = Random.Range(minAttack, maxAttack + 1);
-        Debug.Log($"{playerName} ataca por {damage} de daño (rango: {minAttack}-{maxAttack})");
         return damage;
     }
 
@@ -186,12 +179,11 @@ public class PlayerController : MonoBehaviour
 
         OnAttackChanged?.Invoke(minAttack, maxAttack);
 
-        Debug.Log($"{playerName} aumenta su ataque. Nuevo rango: {minAttack}-{maxAttack}");
     }
 
     void Die()
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene("GameOver");
+        UnityEngine.SceneManagement.SceneManager.LoadScene("GameOverScene");
     }
 
     public bool IsAlive()
@@ -226,13 +218,12 @@ public class PlayerController : MonoBehaviour
 
     public string GetAttackRange()
     {
-        return $"{minAttack}-{maxAttack}";
+        return $"{minAttack} - {maxAttack}";
     }
 
     public void SetCanMove(bool canMoveState)
     {
         canMove = canMoveState;
-        Debug.Log($"PlayerController - CanMove establecido a: {canMove}");
     }
 
     public Vector2Int GetGridPosition()

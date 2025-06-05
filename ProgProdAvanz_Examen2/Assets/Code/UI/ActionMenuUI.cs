@@ -10,7 +10,7 @@ public class ActionMenuUI : MonoBehaviour
     public GameObject mainActionPanel;
     public GameObject moveActionPanel;
     public GameObject attackActionPanel;
-    public GameObject attackResultPanel;  
+    public GameObject attackResultPanel;
     public GameObject restConfirmPanel;
     public GameObject endTurnConfirmPanel;
 
@@ -29,9 +29,9 @@ public class ActionMenuUI : MonoBehaviour
     public GameObject attackButtonPrefab;
     public Button backFromAttackButton;
 
-    [Header("Panel de Resultado de Ataque")] 
-    public TextMeshProUGUI attackResultText;   
-    public Button finishTurnAfterAttackButton;  
+    [Header("Panel de Resultado de Ataque")]
+    public TextMeshProUGUI attackResultText;
+    public Button finishTurnAfterAttackButton;
 
     [Header("Panel de Confirmación de Descanso")]
     public TextMeshProUGUI restDescriptionText;
@@ -48,12 +48,12 @@ public class ActionMenuUI : MonoBehaviour
     [Header("Configuración de Descanso")]
     public int healAmount = 25;
 
-    [Header("Configuración de Ataque")]  
-    public float attackAnimationSpeed = 10f;    
-    public float attackDistance = 0.3f;         
+    [Header("Configuración de Ataque")]
+    public float attackAnimationSpeed = 10f;
+    public float attackDistance = 0.3f;
 
     private bool isInMoveMode = false;
-    private bool isAttacking = false;  
+    private bool isAttacking = false;
     private List<GameObject> generatedAttackButtons = new List<GameObject>();
 
     public static ActionMenuUI Instance { get; private set; }
@@ -125,14 +125,13 @@ public class ActionMenuUI : MonoBehaviour
         mainActionPanel.SetActive(true);
         moveActionPanel.SetActive(false);
         attackActionPanel.SetActive(false);
-        attackResultPanel.SetActive(false);  
+        attackResultPanel.SetActive(false);
         restConfirmPanel.SetActive(false);
         endTurnConfirmPanel.SetActive(false);
         isInMoveMode = false;
 
         UpdateButtonAvailability();
 
-        Debug.Log("Menú de acciones mostrado");
     }
 
     public void HideAllPanels()
@@ -140,7 +139,7 @@ public class ActionMenuUI : MonoBehaviour
         mainActionPanel.SetActive(false);
         moveActionPanel.SetActive(false);
         attackActionPanel.SetActive(false);
-        attackResultPanel.SetActive(false);  
+        attackResultPanel.SetActive(false);
         restConfirmPanel.SetActive(false);
         endTurnConfirmPanel.SetActive(false);
         isInMoveMode = false;
@@ -151,9 +150,11 @@ public class ActionMenuUI : MonoBehaviour
         if (attackButton != null)
         {
             List<EnemyController> adjacentEnemies = GetAdjacentEnemies();
-            attackButton.interactable = adjacentEnemies.Count > 0 && !isAttacking;  
+            BossController adjacentBoss = GetAdjacentBoss();
 
-            Debug.Log($"Enemigos adyacentes encontrados: {adjacentEnemies.Count}");
+            bool hasTargets = adjacentEnemies.Count > 0 || adjacentBoss != null;
+            attackButton.interactable = hasTargets && !isAttacking;
+
         }
 
         if (restButton != null && playerController != null)
@@ -192,11 +193,37 @@ public class ActionMenuUI : MonoBehaviour
             if (enemy != null && enemy.IsAlive())
             {
                 adjacentEnemies.Add(enemy);
-                Debug.Log($"Enemigo {enemy.enemyName} encontrado en posición {checkPos}");
             }
         }
 
         return adjacentEnemies;
+    }
+
+    BossController GetAdjacentBoss()
+    {
+        if (playerController == null) return null;
+
+        Vector2Int playerPos = playerController.GetGridPosition();
+
+        Vector2Int[] directions = {
+            Vector2Int.up,
+            Vector2Int.down,
+            Vector2Int.left,
+            Vector2Int.right
+        };
+
+        foreach (Vector2Int direction in directions)
+        {
+            Vector2Int checkPos = playerPos + direction;
+            BossController boss = GetBossAtPosition(checkPos);
+
+            if (boss != null && boss.IsAlive())
+            {
+                return boss;
+            }
+        }
+
+        return null;
     }
 
     EnemyController GetEnemyAtPosition(Vector2Int position)
@@ -214,32 +241,45 @@ public class ActionMenuUI : MonoBehaviour
         return null;
     }
 
+    BossController GetBossAtPosition(Vector2Int position)
+    {
+        BossController[] allBosses = FindObjectsByType<BossController>(FindObjectsSortMode.None);
+
+        foreach (BossController boss in allBosses)
+        {
+            if (boss.GetGridPosition() == position && boss.IsAlive())
+            {
+                return boss;
+            }
+        }
+
+        return null;
+    }
+
     void OnMoveButtonClicked()
     {
         int actualMovesLeft = TurnManager.Instance.GetPlayerMovesRemaining();
         if (actualMovesLeft <= 0)
         {
-            Debug.Log("No se puede entrar al modo movimiento - no quedan movimientos");
             return;
         }
 
-        Debug.Log("Botón Moverse clickeado");
         EnterMoveMode();
     }
 
     void OnAttackButtonClicked()
     {
-        Debug.Log("Botón Atacar clickeado");
         ShowAttackMenu();
     }
 
     void ShowAttackMenu()
     {
         List<EnemyController> adjacentEnemies = GetAdjacentEnemies();
+        BossController adjacentBoss = GetAdjacentBoss();
 
-        if (adjacentEnemies.Count == 0)
+        if (adjacentEnemies.Count == 0 && adjacentBoss == null)
         {
-            Debug.Log("No hay enemigos adyacentes para atacar");
+            Debug.Log("No hay enemigos ni boss adyacentes para atacar");
             return;
         }
 
@@ -251,9 +291,9 @@ public class ActionMenuUI : MonoBehaviour
         attackActionPanel.SetActive(true);
 
         ClearAttackButtons();
-        GenerateAttackButtons(adjacentEnemies);
+        GenerateAttackButtons(adjacentEnemies, adjacentBoss);
 
-        Debug.Log($"Panel de ataque mostrado con {adjacentEnemies.Count} enemigos");
+        int totalTargets = adjacentEnemies.Count + (adjacentBoss != null ? 1 : 0);
     }
 
     void ClearAttackButtons()
@@ -268,7 +308,7 @@ public class ActionMenuUI : MonoBehaviour
         generatedAttackButtons.Clear();
     }
 
-    void GenerateAttackButtons(List<EnemyController> enemies)
+    void GenerateAttackButtons(List<EnemyController> enemies, BossController boss)
     {
         if (attackButtonPrefab == null || attackButtonsParent == null)
         {
@@ -294,7 +334,25 @@ public class ActionMenuUI : MonoBehaviour
                 button.onClick.AddListener(() => OnEnemyAttackButtonClicked(targetEnemy));
             }
 
-            Debug.Log($"Botón generado para atacar a {enemy.enemyName}");
+        }
+
+        if (boss != null)
+        {
+            GameObject buttonObj = Instantiate(attackButtonPrefab, attackButtonsParent);
+            generatedAttackButtons.Add(buttonObj);
+
+            TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
+            if (buttonText != null)
+            {
+                buttonText.text = boss.bossName;
+            }
+
+            Button button = buttonObj.GetComponent<Button>();
+            if (button != null)
+            {
+                button.onClick.AddListener(() => OnBossAttackButtonClicked(boss));
+            }
+
         }
     }
 
@@ -302,17 +360,29 @@ public class ActionMenuUI : MonoBehaviour
     {
         if (isAttacking || playerController == null || targetEnemy == null || !targetEnemy.IsAlive())
         {
-            Debug.Log("No se puede atacar en este momento");
+            Debug.Log("No se puede atacar al enemigo");
             return;
         }
 
-        Debug.Log($"Iniciando ataque a {targetEnemy.enemyName}");
 
         isAttacking = true;
-
         attackActionPanel.SetActive(false);
 
         StartCoroutine(ExecuteAttackSequence(targetEnemy));
+    }
+
+    void OnBossAttackButtonClicked(BossController targetBoss)
+    {
+        if (isAttacking || playerController == null || targetBoss == null || !targetBoss.IsAlive())
+        {
+            Debug.Log("No se puede atacar al boss");
+            return;
+        }
+
+        isAttacking = true;
+        attackActionPanel.SetActive(false);
+
+        StartCoroutine(ExecuteBossAttackSequence(targetBoss));
     }
 
     IEnumerator ExecuteAttackSequence(EnemyController target)
@@ -331,8 +401,6 @@ public class ActionMenuUI : MonoBehaviour
         Vector3 direction = (targetPosition - originalPosition).normalized;
         Vector3 attackPosition = targetPosition - direction * attackDistance;
 
-        Debug.Log($"Animación de ataque: {originalPosition} -> {attackPosition}");
-
         float attackDuration = 0.2f;
         float elapsedTime = 0f;
 
@@ -348,13 +416,12 @@ public class ActionMenuUI : MonoBehaviour
 
         target.TakeDamage(damage);
 
-        Debug.Log($"Daño aplicado: {damage} a {target.enemyName}");
-
         yield return new WaitForSeconds(0.1f);
 
         float returnDuration = 0.2f;
         elapsedTime = 0f;
 
+        //ANIMACION DE ATAQUE
         while (elapsedTime < returnDuration)
         {
             elapsedTime += Time.deltaTime;
@@ -370,80 +437,117 @@ public class ActionMenuUI : MonoBehaviour
         ShowAttackResult(target.enemyName, damage, target.IsAlive());
     }
 
-    void ShowAttackResult(string enemyName, int damage, bool enemyStillAlive)
+    IEnumerator ExecuteBossAttackSequence(BossController target)
+    {
+        if (playerController == null || target == null)
+        {
+            Debug.LogError("PlayerController o boss target es null");
+            yield break;
+        }
+
+        int damage = playerController.PerformAttack();
+
+        Vector3 originalPosition = playerController.transform.position;
+        Vector3 targetPosition = target.transform.position;
+        Vector3 direction = (targetPosition - originalPosition).normalized;
+        Vector3 attackPosition = targetPosition - direction * attackDistance;
+
+        float attackDuration = 0.2f;
+        float elapsedTime = 0f;
+
+        //ANIMACION DE ATAQUE
+        while (elapsedTime < attackDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float progress = elapsedTime / attackDuration;
+            playerController.transform.position = Vector3.Lerp(originalPosition, attackPosition, progress);
+            yield return null;
+        }
+
+        target.TakeDamage(damage);
+
+        yield return new WaitForSeconds(0.1f);
+
+        float returnDuration = 0.2f;
+        elapsedTime = 0f;
+
+        while (elapsedTime < returnDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float progress = elapsedTime / returnDuration;
+            playerController.transform.position = Vector3.Lerp(attackPosition, originalPosition, progress);
+            yield return null;
+        }
+
+        playerController.transform.position = originalPosition;
+
+        ShowAttackResult(target.bossName, damage, target.IsAlive());
+    }
+
+    void ShowAttackResult(string targetName, int damage, bool targetStillAlive)
     {
         attackResultPanel.SetActive(true);
 
         if (attackResultText != null)
         {
             string resultMessage;
-            if (enemyStillAlive)
+            if (targetStillAlive)
             {
-                resultMessage = $"Atacaste a {enemyName} por {damage} de daño.";
+                resultMessage = $"Atacaste a {targetName} por {damage} de daño.";
             }
             else
             {
-                resultMessage = $"Atacaste a {enemyName} por {damage} de daño.\n\n¡{enemyName} ha sido derrotado!";
+                resultMessage = $"Atacaste a {targetName} por {damage} de daño.\n\n¡{targetName} ha sido derrotado!";
             }
 
             attackResultText.text = resultMessage;
         }
 
-        Debug.Log($"Resultado del ataque mostrado. Enemigo vivo: {enemyStillAlive}");
     }
 
     void OnFinishTurnAfterAttackClicked()
     {
-        Debug.Log("Terminando turno después del ataque");
         EndPlayerTurn();
     }
 
     void OnBackFromAttackClicked()
     {
-        Debug.Log("Volviendo del panel de ataque al menú principal");
         ShowMainActionMenu();
     }
 
     void OnRestButtonClicked()
     {
-        Debug.Log("Botón Descansar clickeado");
         ShowRestConfirmation();
     }
 
     void OnEndTurnButtonClicked()
     {
-        Debug.Log("Botón Pasar Turno clickeado");
         ShowEndTurnConfirmation();
     }
 
     void OnBackToMainMenuClicked()
     {
-        Debug.Log("Volviendo al menú principal");
         ExitMoveMode();
         ShowMainActionMenu();
     }
 
     void OnConfirmRestClicked()
     {
-        Debug.Log("Confirmando descansar");
         PerformRest();
     }
 
     void OnCancelRestClicked()
     {
-        Debug.Log("Cancelando descansar");
         ShowMainActionMenu();
     }
 
     void OnConfirmEndTurnClicked()
     {
-        Debug.Log("Confirmando pasar turno");
         EndPlayerTurn();
     }
 
     void OnCancelEndTurnClicked()
     {
-        Debug.Log("Cancelando pasar turno");
         ShowMainActionMenu();
     }
 
@@ -451,7 +555,6 @@ public class ActionMenuUI : MonoBehaviour
     {
         if (playerController == null)
         {
-            Debug.LogError("No se puede descansar - PlayerController no encontrado");
             return;
         }
 
@@ -460,14 +563,13 @@ public class ActionMenuUI : MonoBehaviour
 
         if (currentHealth >= maxHealth)
         {
-            Debug.Log("No se puede descansar - vida ya está al máximo");
             return;
         }
 
         mainActionPanel.SetActive(false);
         moveActionPanel.SetActive(false);
         attackActionPanel.SetActive(false);
-        attackResultPanel.SetActive(false); 
+        attackResultPanel.SetActive(false);
         endTurnConfirmPanel.SetActive(false);
         restConfirmPanel.SetActive(true);
 
@@ -477,14 +579,12 @@ public class ActionMenuUI : MonoBehaviour
             restDescriptionText.text = $"Recuperarás {healAmount} de vida y tu turno terminará";
         }
 
-        Debug.Log("Panel de confirmación de descanso mostrado");
     }
 
     void PerformRest()
     {
         if (playerController == null)
         {
-            Debug.LogError("No se puede descansar - PlayerController no encontrado");
             return;
         }
 
@@ -497,11 +597,9 @@ public class ActionMenuUI : MonoBehaviour
         mainActionPanel.SetActive(false);
         moveActionPanel.SetActive(false);
         attackActionPanel.SetActive(false);
-        attackResultPanel.SetActive(false); 
+        attackResultPanel.SetActive(false);
         restConfirmPanel.SetActive(false);
         endTurnConfirmPanel.SetActive(true);
-
-        Debug.Log("Panel de confirmación de turno mostrado");
     }
 
     void TryFindPlayerController()
@@ -515,7 +613,7 @@ public class ActionMenuUI : MonoBehaviour
             }
             else
             {
-                Debug.Log("PlayerController no encontrado en Start - se buscará más tarde");
+                Debug.Log("PlayerController no encontrado en Start - se buscará más profundo...");
             }
         }
     }
@@ -549,7 +647,7 @@ public class ActionMenuUI : MonoBehaviour
                     if (allControllers.Length > 0)
                     {
                         playerController = allControllers[0];
-                        Debug.Log($"PlayerController encontrado en búsqueda exhaustiva: {playerController.name}");
+                        Debug.Log($"PlayerController encontrado en búsqueda profunda: {playerController.name}");
                     }
                 }
             }
@@ -562,7 +660,7 @@ public class ActionMenuUI : MonoBehaviour
 
         if (actualMovesLeft <= 0)
         {
-            Debug.Log("No se puede entrar al modo movimiento - no quedan movimientos reales");
+            Debug.Log("No se puede entrar al modo movimiento - no quedan pasos");
             return;
         }
 
@@ -583,10 +681,8 @@ public class ActionMenuUI : MonoBehaviour
         }
         else
         {
-            Debug.LogError("PlayerController TODAVÍA no encontrado después de búsqueda exhaustiva!");
+            Debug.LogError("PlayerController TODAVÍA no encontrado después de búsqueda profunda");
         }
-
-        Debug.Log($"Modo movimiento activado. Movimientos restantes: {actualMovesLeft}");
     }
 
     void ExitMoveMode()
@@ -597,8 +693,6 @@ public class ActionMenuUI : MonoBehaviour
         {
             playerController.SetCanMove(false);
         }
-
-        Debug.Log("Modo movimiento desactivado");
     }
 
     void UpdateMovesRemainingText()
@@ -617,15 +711,12 @@ public class ActionMenuUI : MonoBehaviour
         int actualMovesLeft = TurnManager.Instance.GetPlayerMovesRemaining();
         UpdateMovesRemainingText();
 
-        Debug.Log($"Jugador se movió. Movimientos restantes: {actualMovesLeft}");
-
         if (actualMovesLeft <= 0)
         {
             if (playerController != null)
             {
                 playerController.SetCanMove(false);
             }
-            Debug.Log("Se agotaron los movimientos. El jugador debe usar 'Volver' para regresar al menú principal.");
         }
     }
 
@@ -654,6 +745,5 @@ public class ActionMenuUI : MonoBehaviour
     public void SetPlayerController(PlayerController controller)
     {
         playerController = controller;
-        Debug.Log($"PlayerController asignado desde TurnManager: {controller.name}");
     }
 }

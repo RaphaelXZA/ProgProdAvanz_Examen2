@@ -3665,11 +3665,13 @@ MonoBehaviour:
   normalCellMaterial: {fileID: 2100000, guid: e3b8fbad098fb3243b604f8c5e3df88e, type: 2}
   playerCellMaterial: {fileID: 2100000, guid: d55fd6a0bdb71074e93e841faf0df29a, type: 2}
   enemyCellMaterial: {fileID: 2100000, guid: 997cf3b3cbef30f47984f975606455f9, type: 2}
+  bossCellMaterial: {fileID: 2100000, guid: d2cc4ee901d01c342811a0cc558da0e4, type: 2}
   cellYOffset: -1
   playerPrefab: {fileID: 976040293289813364, guid: 664f78efe8b0cbf448e0326bfa0de3b3, type: 3}
   enemyPrefab: {fileID: 5989947693671054322, guid: 9fd4c7b58a901f4408b959a2f11cb38d, type: 3}
   enemyCount: 3
   minDistanceFromPlayer: 3
+  bossPrefab: {fileID: 5989947693671054322, guid: 0e61ef7eee418364abe2c8e9c00cff1f, type: 3}
 --- !u!4 &1321220439
 Transform:
   m_ObjectHideFlags: 0

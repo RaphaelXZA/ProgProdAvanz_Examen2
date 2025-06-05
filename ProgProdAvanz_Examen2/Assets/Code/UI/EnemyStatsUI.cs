@@ -9,7 +9,7 @@ public class EnemyStatsUI : MonoBehaviour
     public Image healthBarBackground;
     public Image healthBarFill;
     public TextMeshProUGUI enemyNameText;
-    public TextMeshProUGUI attackText;       
+    public TextMeshProUGUI attackText;
 
     [Header("Configuración")]
     public Vector3 offset = new Vector3(0, 2.5f, 0);
@@ -27,6 +27,8 @@ public class EnemyStatsUI : MonoBehaviour
     public float criticalThreshold = 0.25f;
 
     private EnemyController enemyController;
+    private BossController bossController;
+
     private Camera playerCamera;
     private Vector3 velocity;
 
@@ -61,9 +63,20 @@ public class EnemyStatsUI : MonoBehaviour
 
     void UpdatePosition()
     {
+        Transform targetTransform = null;
+
         if (enemyController != null)
         {
-            Vector3 targetPosition = enemyController.transform.position + offset;
+            targetTransform = enemyController.transform;
+        }
+        else if (bossController != null)
+        {
+            targetTransform = bossController.transform;
+        }
+
+        if (targetTransform != null)
+        {
+            Vector3 targetPosition = targetTransform.position + offset;
             transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref velocity, smoothTime);
         }
     }
@@ -71,11 +84,12 @@ public class EnemyStatsUI : MonoBehaviour
     public void Initialize(EnemyController controller)
     {
         enemyController = controller;
+        bossController = null; 
 
         if (enemyController != null)
         {
             enemyController.OnHealthChanged += OnHealthChanged;
-            enemyController.OnAttackChanged += OnAttackChanged;  
+            enemyController.OnAttackChanged += OnAttackChanged;
 
             if (enemyNameText != null)
             {
@@ -83,7 +97,29 @@ public class EnemyStatsUI : MonoBehaviour
             }
 
             OnHealthChanged(enemyController.GetCurrentHealth(), enemyController.GetMaxHealth());
-            OnAttackChanged(enemyController.GetMinAttack(), enemyController.GetMaxAttack()); 
+            OnAttackChanged(enemyController.GetMinAttack(), enemyController.GetMaxAttack());
+
+        }
+    }
+
+    public void Initialize(BossController controller)
+    {
+        bossController = controller;
+        enemyController = null; 
+
+        if (bossController != null)
+        {
+            bossController.OnHealthChanged += OnHealthChanged;
+            bossController.OnAttackChanged += OnAttackChanged;
+
+            if (enemyNameText != null)
+            {
+                enemyNameText.text = bossController.enemyName;
+            }
+
+            OnHealthChanged(bossController.GetCurrentHealth(), bossController.GetMaxHealth());
+            OnAttackChanged(bossController.GetMinAttack(), bossController.GetMaxAttack());
+
         }
     }
 
@@ -138,7 +174,13 @@ public class EnemyStatsUI : MonoBehaviour
         if (enemyController != null)
         {
             enemyController.OnHealthChanged -= OnHealthChanged;
-            enemyController.OnAttackChanged -= OnAttackChanged;  
+            enemyController.OnAttackChanged -= OnAttackChanged;
+        }
+
+        if (bossController != null)
+        {
+            bossController.OnHealthChanged -= OnHealthChanged;
+            bossController.OnAttackChanged -= OnAttackChanged;
         }
     }
 

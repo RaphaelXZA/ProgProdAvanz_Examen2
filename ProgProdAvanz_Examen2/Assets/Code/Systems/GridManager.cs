@@ -12,7 +12,8 @@ public class GridManager : MonoBehaviour
     public GameObject cellPrefab;
     public Material normalCellMaterial;
     public Material playerCellMaterial;
-    public Material enemyCellMaterial; 
+    public Material enemyCellMaterial;
+    public Material bossCellMaterial; 
     public float cellYOffset = -0.1f;
 
     [Header("Jugador")]
@@ -23,6 +24,9 @@ public class GridManager : MonoBehaviour
     public int enemyCount = 3;
     public int minDistanceFromPlayer = 3;
 
+    [Header("Boss")]
+    public GameObject bossPrefab; 
+
     private Vector3[,] gridPositions;
     private GameObject[,] cellObjects;
     private bool[,] occupiedCells;
@@ -31,18 +35,21 @@ public class GridManager : MonoBehaviour
 
     private PlayerController playerController;
     private List<EnemyController> enemies = new List<EnemyController>();
+    private BossController bossController;
 
     public enum CellType
     {
         Empty,
         Player,
-        Enemy
+        Enemy,
+        Boss 
     }
 
     void Start()
     {
         GenerateGrid();
         InitializePlayer();
+        GenerateBoss();
         GenerateEnemies();
     }
 
@@ -96,7 +103,7 @@ public class GridManager : MonoBehaviour
         if (playerPrefab != null)
         {
             int startX = gridWidth / 2;
-            int startZ = 0;
+            int startZ = 0; //Abajo del mapa
 
             Vector3 playerPosition = GetWorldPosition(startX, startZ);
             GameObject playerObj = Instantiate(playerPrefab, playerPosition, Quaternion.identity);
@@ -109,10 +116,40 @@ public class GridManager : MonoBehaviour
                 playerController.SetInitialGridPosition(startX, startZ);
                 SetCellOccupied(startX, startZ, true, CellType.Player);
             }
+
         }
         else
         {
             Debug.LogError("¡No se ha asignado el Player Prefab en el GridManager!");
+        }
+    }
+
+    void GenerateBoss()
+    {
+        if (bossPrefab == null)
+        {
+            Debug.LogWarning("No se ha asignado el Boss Prefab en el GridManager.");
+            return;
+        }
+
+        //Jugador está en el centro abajo, boss va en el centro arriba
+        int bossX = gridWidth / 2;
+        int bossZ = gridHeight - 1;
+
+        Vector3 bossWorldPos = GetWorldPosition(bossX, bossZ);
+        GameObject bossObj = Instantiate(bossPrefab, bossWorldPos, Quaternion.identity);
+        bossObj.name = "Boss";
+
+        bossController = bossObj.GetComponent<BossController>();
+        if (bossController != null)
+        {
+            bossController.SetGridManager(this);
+            bossController.SetInitialGridPosition(bossX, bossZ);
+            SetCellOccupied(bossX, bossZ, true, CellType.Boss);
+        }
+        else
+        {
+            Debug.LogError("El Boss Prefab no tiene el componente BossController!");
         }
     }
 
@@ -125,10 +162,11 @@ public class GridManager : MonoBehaviour
         }
 
         Vector2Int playerPos = new Vector2Int(gridWidth / 2, 0);
+        Vector2Int bossPos = new Vector2Int(gridWidth / 2, gridHeight - 1); // Posición del boss para evitarla
 
         for (int i = 0; i < enemyCount; i++)
         {
-            Vector2Int enemyPos = FindValidEnemyPosition(playerPos);
+            Vector2Int enemyPos = FindValidEnemyPosition(playerPos, bossPos);
 
             if (enemyPos != Vector2Int.one * -1)
             {
@@ -145,6 +183,7 @@ public class GridManager : MonoBehaviour
                     enemies.Add(enemyController);
                     SetCellOccupied(enemyPos.x, enemyPos.y, true, CellType.Enemy);
                 }
+
             }
             else
             {
@@ -153,7 +192,7 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    Vector2Int FindValidEnemyPosition(Vector2Int playerPosition)
+    Vector2Int FindValidEnemyPosition(Vector2Int playerPosition, Vector2Int bossPosition)
     {
         int maxAttempts = 100;
 
@@ -166,8 +205,11 @@ public class GridManager : MonoBehaviour
 
             if (IsCellFree(randomX, randomZ))
             {
-                float distance = Vector2Int.Distance(candidatePos, playerPosition);
-                if (distance >= minDistanceFromPlayer)
+                float distanceToPlayer = Vector2Int.Distance(candidatePos, playerPosition);
+                float distanceToBoss = Vector2Int.Distance(candidatePos, bossPosition);
+
+                //Asegurar que el enemigo este lejos del player y no obstruya al boss
+                if (distanceToPlayer >= minDistanceFromPlayer && distanceToBoss >= 1)
                 {
                     return candidatePos;
                 }
@@ -227,6 +269,9 @@ public class GridManager : MonoBehaviour
                     case CellType.Enemy:
                         materialToUse = enemyCellMaterial != null ? enemyCellMaterial : normalCellMaterial;
                         break;
+                    case CellType.Boss:
+                        materialToUse = bossCellMaterial != null ? bossCellMaterial : normalCellMaterial;
+                        break;
                     case CellType.Empty:
                     default:
                         materialToUse = normalCellMaterial;
@@ -247,6 +292,20 @@ public class GridManager : MonoBehaviour
         return Vector2Int.zero;
     }
 
+    public Vector2Int GetBossPosition()
+    {
+        if (bossController != null)
+        {
+            return bossController.GetGridPosition();
+        }
+        return Vector2Int.zero;
+    }
+
+    public BossController GetBossController()
+    {
+        return bossController;
+    }
+
     void OnDrawGizmos()
     {
         if (gridPositions != null)
@@ -258,6 +317,19 @@ public class GridManager : MonoBehaviour
                 {
                     Gizmos.DrawWireCube(gridPositions[x, z], Vector3.one * cellSize * 0.8f);
                 }
+            }
+
+            if (Application.isPlaying)
+            {
+                //Posición del jugador
+                Gizmos.color = Color.green;
+                Vector3 playerPos = GetWorldPosition(gridWidth / 2, 0);
+                Gizmos.DrawWireCube(playerPos, Vector3.one * cellSize);
+
+                //Posición del boss
+                Gizmos.color = Color.red;
+                Vector3 bossPos = GetWorldPosition(gridWidth / 2, gridHeight - 1);
+                Gizmos.DrawWireCube(bossPos, Vector3.one * cellSize);
             }
         }
     }
